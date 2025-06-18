@@ -24,7 +24,6 @@ class VSSMSegblkscan(BaseModel):
             parser.add_argument('--lambda_gp', type=float, default=10.0, help='weight for wgan-gp loss')
             parser.add_argument('--lambda_per', type=float, default=30.0, help='weight for image perceptual loss')
             parser.add_argument('--lambda_sty', type=float, default=1000.0, help='weight for style loss')
-            parser.add_argument('--lambda_id', type=float, default=0.1, help='weight for id loss')
 
         return parser
 
@@ -152,8 +151,6 @@ class VSSMSegblkscan(BaseModel):
         self.loss_per_g = (self.resnet_loss(self.img_coarse, self.img_truth) + self.resnet_loss(self.img_out, self.img_truth)) * self.opt.lambda_per
         # calculate style loss
         self.loss_sty_g = (self.style_loss(self.img_coarse, self.img_truth, self.vgg) + self.style_loss(self.img_out, self.img_truth, self.vgg)) * self.opt.lambda_sty
-        # calculate id loss
-        # self.loss_id_g = (self.id_loss(self.img_coarse, self.img_truth) + self.id_loss(self.img_out, self.img_truth)) * self.opt.lambda_id
 
         total_loss = 0
 
