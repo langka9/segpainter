@@ -27,6 +27,37 @@ class ToOneHot(object):
 		one_hot = self.onehot_initialization(img)
 		return one_hot
 
+class ToSoftOneHot(object):
+	""" Convert the input PIL image to a one-hot torch tensor """
+	def __init__(self, n_classes=None):
+		self.n_classes = n_classes * 2
+
+	def onehot_initialization(self, a):
+		if self.n_classes is None:
+			self.n_classes = len(np.unique(a))
+		out = np.zeros(a.shape + (self.n_classes, ), dtype=np.float32)
+		newout = np.zeros(a.shape + (self.n_classes, ), dtype=np.float32)
+		out[self.__all_idx(a, axis=2)] = 1
+
+		newout[:, :, :self.n_classes//2] = out[:, :, :self.n_classes//2] * self.missing_rate
+		newout[:, :, self.n_classes//2:] = out[:, :, self.n_classes//2:] * (1 / self.missing_rate)
+
+		return newout
+
+	def __all_idx(self, idx, axis):
+		grid = np.ogrid[tuple(map(slice, idx.shape))]
+		grid.insert(axis, idx)
+		return tuple(grid)
+
+	def __call__(self, img, mask):
+		self.missing_rate = np.sum(mask) / (mask.shape[0] * mask.shape[1])
+		img = np.array(img)
+		unknowm_img = img * mask
+		unknowm_img = unknowm_img + self.n_classes // 2
+		known_img = img * (1 - mask)
+		img = known_img + unknowm_img
+		one_hot = self.onehot_initialization(img)
+		return one_hot
 
 class BilinearResize(object):
 	def __init__(self, factors=[1, 2, 4, 8, 16, 32]):
